@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PayDash</title>
+  <link rel="manifest" href="manifest.json">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    }
+    /* This style ensures a hidden section takes up no space */
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body class="bg-gray-900 text-white">
+
+<div id="lock-screen" class="fixed inset-0 bg-gray-900 z-50 p-8 flex flex-col justify-center items-center hidden">
+  
+  <h1 class="text-2xl font-bold text-blue-400 mb-6">Enter PIN to Unlock</h1>
+  
+  <input type="password" id="pin-input" 
+         class="bg-gray-800 text-center text-2xl tracking-[.5em] w-48 rounded-lg p-3" 
+         maxlength="4" pattern="[0-9]*" inputmode="numeric">
+         
+  <button id="pin-unlock-btn" 
+          class="w-48 mt-6 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg">
+    Unlock
+  </button>
+  
+  <p id="pin-error-msg" class="text-red-400 mt-4 h-6"></p>
+</div>
+
+  <div id="app-container" class="max-w-md mx-auto p-4">
+
+    <main id="screens-container" class="pb-20">
+
+      <section id="log-screen" class="space-y-4">
+        <h1 class="text-3xl font-bold text-blue-400">Log a Shift</h1>
+
+        <form id="log-form" class="space-y-6">
+          <div class="flex flex-col space-y-1">
+            <label for="log-date" class="text-sm font-medium text-gray-400">Date:</label>
+            <input type="date" id="log-date" required class="bg-gray-800 border border-gray-700 rounded-lg p-3 text-white w-full">
+          </div>
+          <div class="flex flex-col space-y-1">
+            <label for="log-job" class="text-sm font-medium text-gray-400">Job:</label>
+            <select id="log-job" required class="bg-gray-800 border border-gray-700 rounded-lg p-3 text-white w-full">
+              <option id="log-job-1-option" value="Job 1">Job 1</option>
+              <option id="log-job-2-option" value="Job 2">Job 2</option>
+            </select>
+          </div>
+          <div class="flex flex-col space-y-1">
+            <label for="log-hours" class="text-sm font-medium text-gray-400">Hours:</label>
+            <input type="number" id="log-hours" placeholder="e.g. 6.5" step="0.1" required class="bg-gray-800 border border-gray-700 rounded-lg p-3 text-white w-full">
+          </div>
+          <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200">
+            Log Shift
+          </button>
+        </form>
+
+        <div id="recent-shifts-container" class="space-y-4">
+          <h2 class="text-xl font-bold text-gray-300">Recent Shifts</h2>
+          <div id="recent-shifts-list" class="space-y-2">
+            </div>
+        </div>
+      </section>
+
+      <section id="pay-screen" class="hidden space-y-4">
+        <h1 class="text-3xl font-bold text-blue-400">Paycheck Calculator</h1>
+
+        <div id="calculator-inputs" class="bg-gray-800 rounded-lg p-4 space-y-4">
+          <h3 class="text-lg font-semibold">Pay Period Dates</h3>
+          
+          <div class="space-y-2 bg-gray-700/50 p-3 rounded-lg">
+            <div class="flex justify-between items-center text-lg">
+              <span id="job1-name-display" class="font-bold">Job 1</span>
+              <span id="job1-rate-display" class="font-mono text-blue-300">£12.00/hr</span>
+            </div>
+            <hr class="border-gray-600">
+            <label for="job1-start" class="text-sm font-medium text-gray-400">Start Date:</label>
+            <input type="date" id="job1-start" class="bg-gray-700 border border-gray-600 rounded-lg p-2 text-white w-full">
+            <label for="job1-end" class="text-sm font-medium text-gray-400">End Date:</label>
+            <input type="date" id="job1-end" class="bg-gray-700 border border-gray-600 rounded-lg p-2 text-white w-full">
+          </div>
+
+          <div class="space-y-2 bg-gray-700/50 p-3 rounded-lg">
+            <div class="flex justify-between items-center text-lg">
+              <span id="job2-name-display" class="font-bold">Job 2</span>
+              <span id="job2-rate-display" class="font-mono text-blue-300">£12.00/hr</span>
+            </div>
+            <hr class="border-gray-600">
+            <label for="job2-start" class="text-sm font-medium text-gray-400">Start Date:</label>
+            <input type="date" id="job2-start" class="bg-gray-700 border border-gray-600 rounded-lg p-2 text-white w-full">
+            <label for="job2-end" class="text-sm font-medium text-gray-400">End Date:</label>
+            <input type="date" id="job2-end" class="bg-gray-700 border border-gray-600 rounded-lg p-2 text-white w-full">
+          </div>
+        </div>
+
+        <div id="calculator-results" class="bg-gray-800 rounded-lg p-4 space-y-3">
+          <h2 class="text-lg font-semibold">Results</h2>
+          <div class="flex justify-between items-center">
+            <strong id="job1-result-label" class="text-gray-300">Job 1:</strong>
+            <span class="text-lg font-mono">
+              <span id="job1-hours">--</span> Hours | 
+              <span id="job1-pay" class="text-green-400">£--</span>
+            </span>
+          </div>
+          <div class="flex justify-between items-center">
+            <strong id="job2-result-label" class="text-gray-300">Job 2:</strong>
+            <span class="text-lg font-mono">
+              <span id="job2-hours">--</span> Hours | 
+              <span id="job2-pay" class="text-green-400">£--</span>
+            </span>
+          </div>
+          <hr class="border-gray-700">
+          <div class="flex justify-between items-center">
+            <strong class="text-xl">Total Gross Pay:</strong>
+            <h2 id="total-pay" class="text-2xl font-bold text-green-400">£--.--</h2>
+          </div>
+        </div>
+      </section>
+
+      <section id="settings-screen" class="hidden space-y-4">
+        <h1 class="text-3xl font-bold text-blue-400">Settings</h1>
+
+        <div class="bg-gray-800 rounded-lg p-4 space-y-4">
+          <h3 class="text-lg font-semibold">Job Configuration</h3>
+          <div class="space-y-2 bg-gray-700/50 p-3 rounded-lg">
+            <div class="flex justify-between items-center">
+              <label for="job1-name" class="text-sm font-medium text-gray-400">Job 1 Name:</label>
+              <input type="text" id="job1-name" value="Job 1" class="bg-gray-800 border border-gray-600 rounded-lg p-2 text-white w-3/5">
+            </div>
+            <div class="flex justify-between items-center">
+              <label for="job1-rate" class="text-sm font-medium text-gray-400">Job 1 Rate (£/hr):</label>
+              <input type="text" inputmode="decimal" id="job1-rate" value="12.00" class="bg-gray-800 border border-gray-600 rounded-lg p-2 text-white w-3/5 text-right">
+            </div>
+          </div>
+          <div class="space-y-2 bg-gray-700/50 p-3 rounded-lg">
+            <div class="flex justify-between items-center">
+              <label for="job2-name" class="text-sm font-medium text-gray-400">Job 2 Name:</label>
+              <input type="text" id="job2-name" value="Job 2" class="bg-gray-800 border border-gray-600 rounded-lg p-2 text-white w-3/5">
+            </div>
+            <div class="flex justify-between items-center">
+              <label for="job2-rate" class="text-sm font-medium text-gray-400">Job 2 Rate (£/hr):</label>
+              <input type="text" inputmode="decimal" id="job2-rate" value="12.00" class="bg-gray-800 border border-gray-600 rounded-lg p-2 text-white w-3/5 text-right">
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-gray-800 rounded-lg p-4 space-y-4">
+          <h3 class="text-lg font-semibold">Security</h3>
+
+          <div id="set-pin-container" class="space-y-4">
+            <div class="flex flex-col space-y-2">
+              <label for="new-pin" class="text-sm font-medium text-gray-400">Set New 4-Digit PIN:</label>
+              <input type="password" id="new-pin" 
+                     class="bg-gray-700 rounded-lg p-2 w-full" 
+                     maxlength="4" pattern="[0-9]*" inputmode="numeric">
+            </div>
+            
+            <div class="flex flex-col space-y-2">
+              <label for="confirm-pin" class="text-sm font-medium text-gray-400">Confirm New PIN:</label>
+              <input type="password" id="confirm-pin" 
+                     class="bg-gray-700 rounded-lg p-2 w-full" 
+                     maxlength="4" pattern="[0-9]*" inputmode="numeric">
+            </div>
+            
+            <button id="pin-set-btn" 
+                    class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg">
+              Set PIN
+            </button>
+            
+            <p id="pin-status-msg" class="text-red-400 h-6"></p>
+          </div>
+
+          <div id="manage-pin-container" class="hidden space-y-4">
+            <p class="text-sm text-gray-400">
+              PIN is active.
+            </p>
+            <button id="pin-remove-btn" 
+                    class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg">
+              Remove PIN
+            </button>
+          </div>
+          
+        </div>
+
+        <div class="bg-gray-800 rounded-lg p-4 space-y-4">
+          <h3 class="text-lg font-semibold text-red-400">Danger Zone</h3>
+          <div class="space-y-2">
+            <p class="text-sm text-gray-400">
+              This will permanently delete all of your data, including all
+              logged shifts and custom job settings. This cannot be undone.
+            </p>
+            <button id="reset-app-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg transition duration-200">
+              Reset All App Data
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </main> <nav id="bottom-nav" class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-gray-800 border-t border-gray-700 flex justify-around p-2">
+      <button id="nav-log-btn" class="bg-blue-600 text-white p-2 rounded-lg">Log</button>
+      <button id="nav-pay-btn" class="text-gray-400 p-2 rounded-lg">Paycheck</button>
+      <button id="nav-settings-btn" class="text-gray-400 p-2 rounded-lg">Settings</button>
+    </nav>
+
+  </div> <script src="app.js" defer></script>
+  
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./serviceworker.js')
+          .then(registration => {
+            console.log('ServiceWorker registered successfully');
+          })
+          .catch(error => {
+            console.log('ServiceWorker registration failed:', error);
+          });
+      });
+    }
+  </script>
+</body>
+</html>
